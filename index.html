@@ -1,32 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Visitor Logger</title>
-  </head>
-  <body>
-    <h1>Welcome to my site</h1>
-    <p>If you're seeing this, the site is working!</p>
+<script>
+async function logVisitor() {
+  const userAgent = navigator.userAgent;
+  const language = navigator.language || navigator.userLanguage;
+  const screenSize = window.screen.width + 'x' + window.screen.height;
+  const referrer = document.referrer || '';
+  const url = window.location.href;
+  const platform = navigator.platform;
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const date = new Date().toISOString();
 
-    <script>
-      (async () => {
-        const battery = await navigator.getBattery?.();
-        const data = {
-          userAgent: navigator.userAgent,
-          language: navigator.language,
-          screen: { width: window.innerWidth, height: window.innerHeight },
-          deviceMemory: navigator.deviceMemory || "unknown",
-          referrer: document.referrer || "none",
-          battery: battery ? Math.round(battery.level * 100) + "%" : "unknown",
-          time: new Date().toISOString(),
-        };
+  // Battery API
+  let batteryLevel = 'unknown';
+  try {
+    const battery = await navigator.getBattery();
+    batteryLevel = (battery.level * 100) + '%';
+  } catch (e) {
+    batteryLevel = 'unsupported';
+  }
 
-        fetch("https://visitor-logger-backend-pgew.vercel.app/api/log", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }).catch((err) => console.error("Logging failed:", err));
-      })();
-    </script>
-  </body>
-</html>
+  // IP Address
+  let ip = '';
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const json = await res.json();
+    ip = json.ip;
+  } catch (e) {
+    ip = 'unknown';
+  }
+
+  const data = {
+    ip,
+    date,
+    userAgent,
+    language,
+    screenSize,
+    platform,
+    batteryLevel,
+    timezone,
+    referrer,
+    url
+  };
+
+  try {
+    await fetch('https://webhook.site/4e5facef-8227-498e-9970-31d80913e906', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (e) {
+    console.error('Logging failed', e);
+  }
+}
+
+logVisitor();
+</script>
