@@ -1,13 +1,7 @@
 <script>
 (async () => {
-  const ipData = await fetch('https://ipapi.co/json/').then(res => res.json());
-
-  const visitorData = {
-    ip: ipData.ip || "Unknown",
-    country: ipData.country_name || "Unknown",
-    region: ipData.region || "Unknown",
-    city: ipData.city || "Unknown",
-    org: ipData.org || "Unknown",
+  const data = {
+    ip: 'unknown',
     userAgent: navigator.userAgent,
     language: navigator.language,
     screenSize: `${screen.width}x${screen.height}`,
@@ -15,12 +9,43 @@
     platform: navigator.platform,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     localTime: new Date().toString(),
+    deviceType: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
   };
 
-  await fetch("/api/log", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(visitorData),
-  });
+  // Try to get IP from public API
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    const json = await res.json();
+    data.ip = json.ip || data.ip;
+  } catch {}
+
+  // Try to get geolocation
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        data.latitude = pos.coords.latitude;
+        data.longitude = pos.coords.longitude;
+        await sendData();
+      },
+      async () => {
+        await sendData();
+      },
+      { timeout: 10000 }
+    );
+  } else {
+    await sendData();
+  }
+
+  async function sendData() {
+    try {
+      await fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+    } catch (e) {
+      console.error("Failed to send visitor data", e);
+    }
+  }
 })();
 </script>
