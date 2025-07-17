@@ -1,34 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>You Have Been Logged</title>
-</head>
-<body>
-  <h1>You Have Been Logged</h1>
+<script>
+(async () => {
+  const ipData = await fetch('https://ipapi.co/json/').then(res => res.json());
 
-  <script>
-  (async () => {
-    const res = await fetch('https://api.ipify.org?format=json');
-    const json = await res.json();
+  const visitorData = {
+    ip: ipData.ip || "Unknown",
+    country: ipData.country_name || "Unknown",
+    region: ipData.region || "Unknown",
+    city: ipData.city || "Unknown",
+    org: ipData.org || "Unknown",
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    screenSize: `${screen.width}x${screen.height}`,
+    url: location.href,
+    platform: navigator.platform,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    localTime: new Date().toString(),
+  };
 
-    const payload = {
-      ip: json.ip,
-      userAgent: navigator.userAgent,
-      language: navigator.language,
-      screenSize: `${screen.width}x${screen.height}`,
-      url: location.href,
-      platform: navigator.platform,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      localTime: new Date().toString()
-    };
-
-    fetch('https://brainrot-vercel-logger-svxi.vercel.app/api/log', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-  })();
-  </script>
-</body>
-</html>
+  await fetch("/api/log", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(visitorData),
+  });
+})();
+</script>
