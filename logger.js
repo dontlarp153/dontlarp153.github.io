@@ -1,18 +1,20 @@
-(async () => {
-  const battery = await navigator.getBattery?.();
-  const data = {
-    userAgent: navigator.userAgent,
-    language: navigator.language,
-    screen: { width: window.innerWidth, height: window.innerHeight },
-    deviceMemory: navigator.deviceMemory || "unknown",
-    referrer: document.referrer || "none",
-    battery: battery ? Math.round(battery.level * 100) + "%" : "unknown",
-    time: new Date().toISOString(),
-  };
+export default function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-  fetch("https://dontlarp153-github-io.vercel.app/api/log", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  }).catch((err) => console.error("Logging failed:", err));
-})();
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+  const data = req.body || {};
+
+  console.log("📍 IP:", ip);
+  console.log("💻 User-Agent:", data.userAgent || "unknown");
+  console.log("🌐 Language:", data.language || "unknown");
+  console.log("📺 Screen:", JSON.stringify(data.screen));
+  console.log("🔋 Battery:", data.battery);
+  console.log("🧠 Memory:", data.deviceMemory);
+  console.log("🔗 Referrer:", data.referrer);
+  console.log("🕓 Time:", data.time);
+  console.log("==================================");
+
+  res.status(200).json({ message: "Logged" });
+}
