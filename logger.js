@@ -1,4 +1,3 @@
-// Collect visitor info and send it to your backend logger
 (async () => {
   const battery = await navigator.getBattery?.();
   const data = {
@@ -11,9 +10,9 @@
     time: new Date().toISOString(),
   };
 
-  fetch("https://dontlarp153-github-io.vercel.app/api/log", {  // <-- Replace this URL!
+  fetch("https://dontlarp153-github-io.vercel.app/api/log", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
-  });
+  }).catch((err) => console.error("Logging failed:", err));
 })();
