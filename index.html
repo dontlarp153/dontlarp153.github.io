@@ -1,20 +1,32 @@
-<script>
-  (async () => {
-    const battery = await navigator.getBattery?.();
-    const data = {
-      userAgent: navigator.userAgent,
-      language: navigator.language,
-      screen: { width: window.innerWidth, height: window.innerHeight },
-      deviceMemory: navigator.deviceMemory || "unknown",
-      referrer: document.referrer || "none",
-      battery: battery ? Math.round(battery.level * 100) + "%" : "unknown",
-      time: new Date().toISOString(),
-    };
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Visitor Logger</title>
+  </head>
+  <body>
+    <h1>Welcome to my site</h1>
+    <p>If you're seeing this, the site is working!</p>
 
-    fetch("https://visitor-logger-backend-pgew.vercel.app/api/log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }).catch((err) => console.error("Logging failed:", err));
-  })();
-</script>
+    <script>
+      (async () => {
+        const battery = await navigator.getBattery?.();
+        const data = {
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          screen: { width: window.innerWidth, height: window.innerHeight },
+          deviceMemory: navigator.deviceMemory || "unknown",
+          referrer: document.referrer || "none",
+          battery: battery ? Math.round(battery.level * 100) + "%" : "unknown",
+          time: new Date().toISOString(),
+        };
+
+        fetch("https://visitor-logger-backend-pgew.vercel.app/api/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }).catch((err) => console.error("Logging failed:", err));
+      })();
+    </script>
+  </body>
+</html>
